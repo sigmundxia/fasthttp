@@ -1473,7 +1473,7 @@ func (h *RequestHeader) setSpecialHeader(key, value []byte) bool {
 			return true
 		case caseInsensitiveCompare(strCookie, key):
 			h.collectCookies()
-			h.cookies = parseRequestCookies(h.cookies, value)
+			h.cookies = parseRequestCookies(make([]argsKV, 0), value)
 			return true
 		}
 	case 't':
