@@ -1662,13 +1662,68 @@ func TestRequestHeaderSetCookie(t *testing.T) {
 	}
 }
 
+func TestRequestHeaderAddCookie(t *testing.T) {
+	t.Parallel()
+
+	var h RequestHeader
+
+	h.Add("Cookie", "foo=bar; baz=aaa")
+	h.Add("cOOkie", "xx=yyy")
+
+	if string(h.Cookie("foo")) != "bar" {
+		t.Fatalf("Unexpected cookie %q. Expecting %q", h.Cookie("foo"), "bar")
+	}
+	if string(h.Cookie("baz")) != "aaa" {
+		t.Fatalf("Unexpected cookie %q. Expecting %q", h.Cookie("baz"), "aaa")
+	}
+	if string(h.Cookie("xx")) != "yyy" {
+		t.Fatalf("unexpected cookie %q. Expecting %q", h.Cookie("xx"), "yyy")
+	}
+}
+
 func TestResponseHeaderSetCookie(t *testing.T) {
 	t.Parallel()
 
 	var h ResponseHeader
 
 	h.Set("set-cookie", "foo=bar; path=/aa/bb; domain=aaa.com")
+
+	var c Cookie
+	c.SetKey("foo")
+	if !h.Cookie(&c) {
+		t.Fatalf("cannot obtain %q cookie", c.Key())
+	}
+	if string(c.Value()) != "bar" {
+		t.Fatalf("unexpected cookie value %q. Expected %q", c.Value(), "bar")
+	}
+	if string(c.Path()) != "/aa/bb" {
+		t.Fatalf("unexpected cookie path %q. Expected %q", c.Path(), "/aa/bb")
+	}
+	if string(c.Domain()) != "aaa.com" {
+		t.Fatalf("unexpected cookie domain %q. Expected %q", c.Domain(), "aaa.com")
+	}
+
 	h.Set(HeaderSetCookie, "aaaaa=bxx")
+
+	if h.Cookie(&c) {
+		t.Fatalf("obtain %q cookie", c.Key())
+	}
+	c.SetKey("aaaaa")
+	if !h.Cookie(&c) {
+		t.Fatalf("cannot obtain %q cookie", c.Key())
+	}
+	if string(c.Value()) != "bxx" {
+		t.Fatalf("unexpected cookie value %q. Expecting %q", c.Value(), "bxx")
+	}
+}
+
+func TestResponseHeaderAddCookie(t *testing.T) {
+	t.Parallel()
+
+	var h ResponseHeader
+
+	h.Add("set-cookie", "foo=bar; path=/aa/bb; domain=aaa.com")
+	h.Add(HeaderSetCookie, "aaaaa=bxx")
 
 	var c Cookie
 	c.SetKey("foo")

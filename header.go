@@ -1382,7 +1382,7 @@ func (h *RequestHeader) del(key []byte) {
 }
 
 // setSpecialHeader handles special headers and return true when a header is processed.
-func (h *ResponseHeader) setSpecialHeader(key, value []byte) bool {
+func (h *ResponseHeader) setSpecialHeader(key, value []byte, add bool) bool {
 	if len(key) == 0 {
 		return false
 	}
@@ -1417,6 +1417,9 @@ func (h *ResponseHeader) setSpecialHeader(key, value []byte) bool {
 			return true
 		} else if caseInsensitiveCompare(strSetCookie, key) {
 			var kv *argsKV
+			if !add {
+				h.DelAllCookies()
+			}
 			h.cookies, kv = allocArg(h.cookies)
 			kv.key = getCookieKey(kv.key, value)
 			kv.value = append(kv.value[:0], value...)
@@ -1446,7 +1449,7 @@ func (h *ResponseHeader) setNonSpecial(key, value []byte) {
 }
 
 // setSpecialHeader handles special headers and return true when a header is processed.
-func (h *RequestHeader) setSpecialHeader(key, value []byte) bool {
+func (h *RequestHeader) setSpecialHeader(key, value []byte, add bool) bool {
 	if len(key) == 0 || h.disableSpecialHeader {
 		return false
 	}
@@ -1473,7 +1476,10 @@ func (h *RequestHeader) setSpecialHeader(key, value []byte) bool {
 			return true
 		case caseInsensitiveCompare(strCookie, key):
 			h.collectCookies()
-			h.cookies = parseRequestCookies(make([]argsKV, 0), value)
+			if !add {
+				h.DelAllCookies()
+			}
+			h.cookies = parseRequestCookies(h.cookies, value)
 			return true
 		}
 	case 't':
@@ -1561,7 +1567,7 @@ func (h *ResponseHeader) AddBytesV(key string, value []byte) {
 // If the header is set as a Trailer (forbidden trailers will not be set, see AddTrailer for more details),
 // it will be sent after the chunked response body.
 func (h *ResponseHeader) AddBytesKV(key, value []byte) {
-	if h.setSpecialHeader(key, value) {
+	if h.setSpecialHeader(key, value, true) {
 		return
 	}
 
@@ -1620,7 +1626,7 @@ func (h *ResponseHeader) SetBytesKV(key, value []byte) {
 // If the header is set as a Trailer (forbidden trailers will not be set, see SetTrailer for more details),
 // it will be sent after the chunked response body.
 func (h *ResponseHeader) SetCanonical(key, value []byte) {
-	if h.setSpecialHeader(key, value) {
+	if h.setSpecialHeader(key, value, false) {
 		return
 	}
 	h.setNonSpecial(key, value)
@@ -1772,7 +1778,7 @@ func (h *RequestHeader) AddBytesV(key string, value []byte) {
 // If the header is set as a Trailer (forbidden trailers will not be set, see AddTrailer for more details),
 // it will be sent after the chunked request body.
 func (h *RequestHeader) AddBytesKV(key, value []byte) {
-	if h.setSpecialHeader(key, value) {
+	if h.setSpecialHeader(key, value, true) {
 		return
 	}
 
@@ -1831,7 +1837,7 @@ func (h *RequestHeader) SetBytesKV(key, value []byte) {
 // If the header is set as a Trailer (forbidden trailers will not be set, see SetTrailer for more details),
 // it will be sent after the chunked request body.
 func (h *RequestHeader) SetCanonical(key, value []byte) {
-	if h.setSpecialHeader(key, value) {
+	if h.setSpecialHeader(key, value, false) {
 		return
 	}
 	h.setNonSpecial(key, value)
