@@ -1652,10 +1652,10 @@ func TestRequestHeaderSetCookie(t *testing.T) {
 
 	h.Set("cOOkie", "xx=yyy")
 	if len(h.Cookie("foo")) != 0 {
-		t.Fatalf("Unexpected cookie %q. Expecting %q", h.Cookie("foo"), "")
+		t.Fatalf("Unexpected cookie %q. Expecting empty string", h.Cookie("foo"))
 	}
 	if len(h.Cookie("baz")) != 0 {
-		t.Fatalf("Unexpected cookie %q. Expecting %q", h.Cookie("baz"), "")
+		t.Fatalf("Unexpected cookie %q. Expecting empty string", h.Cookie("baz"))
 	}
 	if string(h.Cookie("xx")) != "yyy" {
 		t.Fatalf("unexpected cookie %q. Expecting %q", h.Cookie("xx"), "yyy")
