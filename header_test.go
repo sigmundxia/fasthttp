@@ -1643,13 +1643,19 @@ func TestRequestHeaderSetCookie(t *testing.T) {
 	var h RequestHeader
 
 	h.Set("Cookie", "foo=bar; baz=aaa")
-	h.Set("cOOkie", "xx=yyy")
-
 	if string(h.Cookie("foo")) != "bar" {
 		t.Fatalf("Unexpected cookie %q. Expecting %q", h.Cookie("foo"), "bar")
 	}
 	if string(h.Cookie("baz")) != "aaa" {
 		t.Fatalf("Unexpected cookie %q. Expecting %q", h.Cookie("baz"), "aaa")
+	}
+
+	h.Set("cOOkie", "xx=yyy")
+	if string(h.Cookie("foo")) != "" {
+		t.Fatalf("Unexpected cookie %q. Expecting %q", h.Cookie("foo"), "")
+	}
+	if string(h.Cookie("baz")) != "" {
+		t.Fatalf("Unexpected cookie %q. Expecting %q", h.Cookie("baz"), "")
 	}
 	if string(h.Cookie("xx")) != "yyy" {
 		t.Fatalf("unexpected cookie %q. Expecting %q", h.Cookie("xx"), "yyy")
